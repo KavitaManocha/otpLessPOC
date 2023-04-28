@@ -1,0 +1,121 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.google.dagger.hilt.android'
+    id 'kotlin-kapt'
+}
+
+android {
+    namespace 'com.skrninja.mvvm'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.skrninja.mvvm"
+        minSdk 24
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+
+        release {
+            crunchPngs false
+            minifyEnabled false
+            //  signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            ext.config = getProps('../config/release.properties')
+
+            ext.config.each { p ->
+                if (p.key == "APPNAME") {
+                    resValue "string", "app_name", p.value
+                } else if (p.key == "APPLICATION_ID_SUFFIX") {
+                    applicationIdSuffix p.value
+                } else
+                    buildConfigField 'String', p.key, p.value
+            }
+        }
+
+        staging {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            ext.config = getProps('../config/staging.properties')
+            ext.config.each { p ->
+                if (p.key == "APPNAME") {
+                    resValue "string", "app_name", p.value.replace('"', '')
+                } else if (p.key == "APPLICATION_ID_SUFFIX") {
+                    applicationIdSuffix p.value
+                } else {
+                    buildConfigField 'String', p.key, p.value
+                }
+            }
+        }
+
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            ext.config = getProps('../config/development.properties')
+            ext.config.each { p ->
+                if (p.key == "APPNAME") {
+                    resValue "string", "app_name", p.value
+                } else if (p.key == "APPLICATION_ID_SUFFIX") {
+                    applicationIdSuffix p.value
+                } else
+                    buildConfigField 'String', p.key, p.value
+            }
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    buildFeatures {
+        viewBinding true
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.appcompat:appcompat:1.5.1'
+    implementation 'com.google.android.material:material:1.8.0-beta01'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.5.3'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.4'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.0'
+    // Hilt
+    implementation("com.google.dagger:hilt-android:2.44")
+    kapt("com.google.dagger:hilt-android-compiler:2.44")
+
+    // Retrofit
+    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation "com.squareup.retrofit2:converter-moshi:2.9.0"
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.moshi:moshi:1.13.0'
+    kapt 'com.squareup.moshi:moshi-kotlin-codegen:1.13.0'
+    implementation 'com.squareup.moshi:moshi:1.13.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.6'
+    androidTestImplementation 'com.google.dagger:hilt-android-testing:2.42'
+
+    //===============Timber ===========
+    implementation 'com.jakewharton.timber:timber:5.0.1'
+}
+
+// Allow references to generated code
+kapt {
+    correctErrorTypes = true
+}
+
+
+def getProps(path) {
+    Properties props = new Properties()
+    props.load(new FileInputStream(file(path)))
+    return props
+}
